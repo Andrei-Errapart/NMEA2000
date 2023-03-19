@@ -43,9 +43,11 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # define N2kFrameErrDbg(fmt, args...)     DebugStream.print (fmt , ## args)
 # define N2kFrameErrDbgln(fmt, args...)   DebugStream.println (fmt , ## args)
 #else
-# define N2kFrameErrDbgStart(fmt, args...)
-# define N2kFrameErrDbg(fmt, args...)
-# define N2kFrameErrDbgln(fmt, args...)
+static inline void N2kFrameErrDbgStart(const char* fmt, ...) {}
+static inline void N2kFrameErrDbg(const char* fmt, ...) {}
+static inline void N2kFrameErrDbg(const unsigned int x) {}
+static inline void N2kFrameErrDbgln(const char* fmt, ...) {}
+static inline void N2kFrameErrDbgln(const unsigned int x) {}
 #endif
 
 #if defined(NMEA2000_FRAME_IN_DEBUG)
@@ -53,9 +55,12 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # define N2kFrameInDbg(fmt, args...)     DebugStream.print (fmt , ## args)
 # define N2kFrameInDbgln(fmt, args...)   DebugStream.println (fmt , ## args)
 #else
-# define N2kFrameInDbgStart(fmt, args...)
-# define N2kFrameInDbg(fmt, args...)
-# define N2kFrameInDbgln(fmt, args...)
+static inline void N2kFrameInDbgStart(const char* fmt, ...) {}
+static inline void N2kFrameInDbg(const char* fmt, ...) {}
+static inline void N2kFrameInDbg(const unsigned int x) {}
+static inline void N2kFrameInDbg(const unsigned int x, const unsigned int is_hex) {}
+static inline void N2kFrameInDbgln(const char* fmt, ...) {}
+static inline void N2kFrameInDbgln() {}
 #endif
 
 #if defined(NMEA2000_FRAME_OUT_DEBUG)
@@ -63,9 +68,10 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # define N2kFrameOutDbg(fmt, args...)     DebugStream.print (fmt , ## args)
 # define N2kFrameOutDbgln(fmt, args...)   DebugStream.println (fmt , ## args)
 #else
-# define N2kFrameOutDbgStart(fmt, args...)
-# define N2kFrameOutDbg(fmt, args...)
-# define N2kFrameOutDbgln(fmt, args...)
+static inline void N2kFrameOutDbgStart(const char* fmt, ...) {}
+static inline void N2kFrameOutDbg(const char* fmt, ...) {}
+static inline void N2kFrameOutDbgln(const char* fmt, ...) {}
+static inline void N2kFrameOutDbgln(const unsigned int x) {}
 #endif
 
 #if defined(NMEA2000_MSG_DEBUG)
@@ -73,9 +79,16 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # define N2kMsgDbg(fmt, args...)     DebugStream.print (fmt , ## args)
 # define N2kMsgDbgln(fmt, args...)   DebugStream.println (fmt , ## args)
 #else
-# define N2kMsgDbgStart(fmt, args...)
-# define N2kMsgDbg(fmt, args...)
-# define N2kMsgDbgln(fmt, args...)
+static inline void N2kMsgDbgStart(const char* fmt, ...) {}
+static inline void N2kMsgDbg(const char* fmt, ...) {}
+static inline void N2kMsgDbg(const unsigned int x) {}
+static inline void N2kMsgDbgln(const char* fmt, ...) {}
+static inline void N2kMsgDbgln(const unsigned int x) {}
+static inline void N2kMsgDbgln() {}
+#endif
+
+#if defined(WIN32)
+static constexpr unsigned int HEX = 16;
 #endif
 
 #if defined(NMEA2000_BUF_DEBUG)
@@ -88,8 +101,10 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # define N2kDbg(fmt, args...)     DebugStream.print (fmt , ## args)
 # define N2kDbgln(fmt, args...)   DebugStream.println (fmt , ## args)
 #else
-# define N2kDbg(fmt, args...)
-# define N2kDbgln(fmt, args...)
+static inline void N2kDbg(const char* fmt, ...) { }
+static inline void N2kDbg(const unsigned int x) { }
+static inline void N2kDbgln(const char* fmt, ...) { }
+static inline void N2kDbgln(uintptr_t x) {}
 #endif
 
 // #define NMEA2000_MEMORY_TEST 1
@@ -103,7 +118,7 @@ void N2kPrintFreeMemory(const char *Source) {
     Serial.println(freeMemory());
 }
 #else
-#define N2kPrintFreeMemory(a)
+static inline void N2kPrintFreeMemory(const char* Source) {}
 #endif
 
 /** \brief Timeout value for the ISO Address Claim in ms*/
@@ -1141,7 +1156,7 @@ void tNMEA2000::SetMode(tN2kMode _N2kMode, uint8_t _N2kSource) {
 void tNMEA2000::InitCANFrameBuffers() {
     if ( CANSendFrameBuf==0 && !IsInitialized() ) {
       if ( MaxCANSendFrames>0 ) CANSendFrameBuf = new tCANSendFrame[MaxCANSendFrames];
-      N2kDbg("Initialize frame buffer. Size: "); N2kDbg(MaxCANSendFrames); N2kDbg(", address:"); N2kDbgln((uint32_t)CANSendFrameBuf);
+      N2kDbg("Initialize frame buffer. Size: "); N2kDbg(MaxCANSendFrames); N2kDbg(", address:"); N2kDbgln((uintptr_t)CANSendFrameBuf);
       CANSendFrameBufferWrite=0;
       CANSendFrameBufferRead=0;
     }

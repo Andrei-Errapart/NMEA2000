@@ -25,6 +25,12 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "N2kGroupFunctionDefaultHandlers.h"
 #include "NMEA2000.h"
 
+#if defined(_MSC_VER)
+#include <malloc.h>
+#else
+#include <alloca.h>
+#endif
+
 #define N2kPGN60928_UniqueNumber_field 1
 #define N2kPGN60928_ManufacturerCode_field 2
 #define N2kPGN60928_DeviceInstanceLower_field 3
@@ -289,8 +295,8 @@ bool tN2kGroupFunctionHandlerForPGN126996::HandleRequest(const tN2kMsg &N2kMsg,
     tN2kGroupFunctionParameterErrorCode FieldErrorCode;
     bool FoundInvalidField=false;
     size_t strSize=Max_N2kProductInfoStrLen;
-    char Query[strSize];
-    char CurVal[strSize];
+    char* Query = reinterpret_cast<char*>(alloca(strSize));
+    char* CurVal = reinterpret_cast<char*>(alloca(strSize));
 
     StartParseRequestPairParameters(N2kMsg,Index);
     // Next read new field values. Note that if message is not broadcast, we need to parse all fields always.

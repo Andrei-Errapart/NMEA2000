@@ -47,6 +47,10 @@
 #include "N2kCANMsg.h"
 #include "N2kTimer.h"
 
+#if defined(_MSC_VER)
+#define __attribute__(x)
+#endif
+
 #if !defined(N2K_NO_GROUP_FUNCTION_SUPPORT)
 #include "N2kGroupFunction.h"
 #endif
