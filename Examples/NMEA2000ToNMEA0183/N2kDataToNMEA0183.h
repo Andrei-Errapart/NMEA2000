@@ -41,12 +41,14 @@ protected:
   double WindSpeed;
   double WindAngle;
   unsigned long LastHeadingTime;
+  double LastHeave;
   unsigned long LastCOGSOGTime;
   unsigned long LastPositionTime;
   unsigned long LastPosSend;
   unsigned long LastWindTime;
   uint16_t DaysSince1970;
   double SecondsSinceMidnight;
+  unsigned int SecondsSinceMidnightMillis;
   unsigned long NextRMCSend;
 
   tNMEA0183 *pNMEA0183;
@@ -55,6 +57,8 @@ protected:
 protected:
   void HandleSystemDateTime(const tN2kMsg& N2kMsg); // 126992
   void HandleHeading(const tN2kMsg &N2kMsg); // 127250
+  void HandleHeave(const tN2kMsg& N2kMsg);  // 127252
+  void HandleAttitude(const tN2kMsg& N2kMsg); // 127257
   void HandleVariation(const tN2kMsg &N2kMsg); // 127258
   void HandleBoatSpeed(const tN2kMsg &N2kMsg); // 128259
   void HandleDepth(const tN2kMsg &N2kMsg); // 128267
@@ -72,15 +76,18 @@ public:
     pNMEA0183=_pNMEA0183;
     Latitude=N2kDoubleNA; Longitude=N2kDoubleNA; Altitude=N2kDoubleNA;
     Variation=N2kDoubleNA; Heading=N2kDoubleNA; COG=N2kDoubleNA; SOG=N2kDoubleNA;
-    SecondsSinceMidnight=N2kDoubleNA; DaysSince1970=N2kUInt16NA;
+    SecondsSinceMidnight=N2kDoubleNA;
+    SecondsSinceMidnightMillis=0;
+    DaysSince1970=N2kUInt16NA;
     LastPosSend=0;
     NextRMCSend=millis()+RMCPeriod;
     LastHeadingTime=0;
+    LastHeave=0;
     LastCOGSOGTime=0;
     LastPositionTime=0;
     LastWindTime=0;
   }
-  void HandleMsg(const tN2kMsg &N2kMsg);
+  virtual void HandleMsg(const tN2kMsg &N2kMsg);
   void SetSendNMEA0183MessageCallback(tSendNMEA0183MessageCallback _SendNMEA0183MessageCallback) {
     SendNMEA0183MessageCallback=_SendNMEA0183MessageCallback;
   }

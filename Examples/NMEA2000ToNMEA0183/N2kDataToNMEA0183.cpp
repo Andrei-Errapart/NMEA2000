@@ -37,6 +37,8 @@ void tN2kDataToNMEA0183::HandleMsg(const tN2kMsg &N2kMsg) {
   switch (N2kMsg.PGN) {
     case 126992UL: HandleSystemDateTime(N2kMsg);
     case 127250UL: HandleHeading(N2kMsg);
+    case 127252UL: HandleHeave(N2kMsg);
+    case 127257UL: HandleAttitude(N2kMsg);
     case 127258UL: HandleVariation(N2kMsg);
     case 128259UL: HandleBoatSpeed(N2kMsg);
     case 128267UL: HandleDepth(N2kMsg);
@@ -106,6 +108,38 @@ tNMEA0183Msg NMEA0183Msg;
 }
 
 //*****************************************************************************
+void tN2kDataToNMEA0183::HandleHeave(const tN2kMsg& N2kMsg) {
+unsigned char SID;
+double Heave;
+double Delay;
+tN2kDelaySource DelaySource;
+tNMEA0183Msg NMEA0183Msg;
+
+  if (ParseN2kHeave(N2kMsg, SID, Heave, Delay, DelaySource)) {
+    LastHeave = Heave;
+  }
+}
+
+//*****************************************************************************
+void tN2kDataToNMEA0183::HandleAttitude(const tN2kMsg& N2kMsg) {
+unsigned char SID;
+double Yaw;
+double Pitch;
+double Roll;
+tNMEA0183Msg NMEA0183Msg;
+
+  if (ParseN2kAttitude(N2kMsg, SID, Yaw, Pitch, Roll)) {
+    if (SecondsSinceMidnight != N2kDoubleNA) {
+      const uint32_t dt_ms = millis() - SecondsSinceMidnightMillis;
+      const double GPSTime = SecondsSinceMidnight + 0.001 * dt_ms;
+      if (NMEA0183SetSHR(NMEA0183Msg, GPSTime, Yaw, Roll, Pitch, LastHeave, DegToRad(0.01), DegToRad(0.01), DegToRad(0.01), 1, 1, "PA")) {
+        SendMessage(NMEA0183Msg);
+      }
+    }
+  }
+}
+
+//*****************************************************************************
 void tN2kDataToNMEA0183::HandleVariation(const tN2kMsg &N2kMsg) {
 unsigned char SID;
 tN2kMagneticVariation Source;
@@ -150,7 +184,7 @@ double Range;
 //*****************************************************************************
 void tN2kDataToNMEA0183::HandlePosition(const tN2kMsg &N2kMsg) {
 
-  if ( ParseN2kPGN129025(N2kMsg, Latitude, Longitude) ) {
+  if ( ParseN2kPositionRapid(N2kMsg, Latitude, Longitude) ) {
     LastPositionTime=millis();
   }
 }
@@ -193,6 +227,7 @@ tNMEA0183Msg NMEA0183Msg;
                     nSatellites,HDOP,PDOP,GeoidalSeparation,
                     nReferenceStations,ReferenceStationType,ReferenceSationID,AgeOfCorrection) ) {
     LastPositionTime=millis();
+    SecondsSinceMidnightMillis=LastPositionTime;
     if (NMEA0183SetGGA(NMEA0183Msg, SecondsSinceMidnight, Latitude, Longitude, static_cast<uint32_t>(GNSSmethod), nSatellites, HDOP, Altitude, GeoidalSeparation, AgeOfCorrection, ReferenceSationID== N2kInt16NA ? NMEA0183UInt32NA : ReferenceSationID)) {
         SendMessage(NMEA0183Msg);
     }
