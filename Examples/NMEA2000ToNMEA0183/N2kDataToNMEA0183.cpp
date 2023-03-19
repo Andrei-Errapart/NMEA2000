@@ -21,12 +21,15 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include <numbers>
 #include "N2kDataToNMEA0183.h"
 #include <N2kMessages.h>
 #include <NMEA0183Messages.h>
 #include <math.h>
 
-
+#if !defined(M_PI)
+static constexpr double M_PI = std::numbers::pi;
+#endif
 const double radToDeg=180.0/M_PI;
 
 //*****************************************************************************
