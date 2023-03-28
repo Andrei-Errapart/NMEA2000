@@ -97,8 +97,13 @@ tNMEA0183Msg NMEA0183Msg;
 
   if ( ParseN2kHeading(N2kMsg, SID, Heading, _Deviation, _Variation, ref) ) {
     if ( ref==N2khr_magnetic ) {
-      if ( !N2kIsNA(_Variation) ) Variation=_Variation; // Update Variation
-      if ( !N2kIsNA(Heading) && !N2kIsNA(Variation) ) Heading-=Variation;
+#if (1)
+        // FIXME: Magnetic heading is not useful during seafloor profiling
+        return;
+#else
+        if (!N2kIsNA(_Variation)) Variation = _Variation; // Update Variation
+        if (!N2kIsNA(Heading) && !N2kIsNA(Variation)) Heading -= Variation;
+#endif
     }
     LastHeadingTime=millis();
     if ( NMEA0183SetHDG(NMEA0183Msg,Heading,_Deviation,Variation) ) {
@@ -130,6 +135,12 @@ tNMEA0183Msg NMEA0183Msg;
 
   if (ParseN2kAttitude(N2kMsg, SID, Yaw, Pitch, Roll)) {
     if (SecondsSinceMidnight != N2kDoubleNA) {
+#if (1)
+      // FIXME: Global solution to local problem: our source 0 is not reliable.
+      if (N2kMsg.Source == 0) {
+        return;
+      }
+#endif
       const uint32_t dt_ms = millis() - SecondsSinceMidnightMillis;
       const double GPSTime = SecondsSinceMidnight + 0.001 * dt_ms;
       if (NMEA0183SetSHR(NMEA0183Msg, GPSTime, Yaw, Roll, Pitch, LastHeave, DegToRad(0.01), DegToRad(0.01), DegToRad(0.01), 1, 1, "PA")) {
